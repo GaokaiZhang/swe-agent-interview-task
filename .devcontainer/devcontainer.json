@@ -1,22 +1,42 @@
 {
-  "name": "swe-agent",
+  "name": "swe-agent w/ Docker (DinD, jammy)",
   "image": "mcr.microsoft.com/devcontainers/base:jammy",
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:1": {
-      "moby": true
+      "version": "latest",
+      "moby": false,
+      "azureDnsAutoDetection": true
     },
     "ghcr.io/devcontainers/features/python:1": {
-      "version": "3.10"
+      "version": "3.10",
+      "installJupytools": false
     }
   },
-  "remoteEnv": {
-    "PYTHONUNBUFFERED": "1",
-    "PIP_DISABLE_PIP_VERSION_CHECK": "1"
+  "remoteUser": "vscode",
+  "overrideCommand": false,
+  "containerEnv": {
+    "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+    "PIP_NO_CACHE_DIR": "1"
   },
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y ripgrep jq && pip install -U pip && pip install swebench datasets anthropic pytest",
+  "runArgs": [
+    "--privileged",
+    "--shm-size=2g"
+  ],
+  "mounts": [
+    "type=volume,source=dind-var-lib-docker,target=/var/lib/docker"
+  ],
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y git jq && python -V && docker --version || true",
+  "postStartCommand": "sudo /usr/local/share/docker-init.sh >/tmp/dind.log 2>&1 || true && sleep 3 && docker info >/tmp/docker-info.txt 2>&1 || true",
   "customizations": {
     "vscode": {
-      "extensions": ["ms-python.python", "tamasfe.even-better-toml"]
+      "extensions": [
+        "ms-python.python",
+        "ms-azuretools.vscode-docker"
+      ]
     }
+  },
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "4gb"
   }
 }
