@@ -1,0 +1,98 @@
+PROMPT:
+Instance ID: django__django-12700
+Repository:  django/django
+
+<issue>
+Settings are cleaned insufficiently.
+Description
+	
+Posting publicly after checking with the rest of the security team.
+I just ran into a case where django.views.debug.SafeExceptionReporterFilter.get_safe_settings() would return several un-cleansed values. Looking at cleanse_setting() I realized that we ​only take care of `dict`s but don't take other types of iterables into account but ​return them as-is.
+Example:
+In my settings.py I have this:
+MY_SETTING = {
+	"foo": "value",
+	"secret": "value",
+	"token": "value",
+	"something": [
+		{"foo": "value"},
+		{"secret": "value"},
+		{"token": "value"},
+	],
+	"else": [
+		[
+			{"foo": "value"},
+			{"secret": "value"},
+			{"token": "value"},
+		],
+		[
+			{"foo": "value"},
+			{"secret": "value"},
+			{"token": "value"},
+		],
+	]
+}
+On Django 3.0 and below:
+>>> import pprint
+>>> from django.views.debug import get_safe_settings
+>>> pprint.pprint(get_safe_settings()["MY_SETTING"])
+{'else': [[{'foo': 'value'}, {'secret': 'value'}, {'token': 'value'}],
+		 [{'foo': 'value'}, {'secret': 'value'}, {'token': 'value'}]],
+ 'foo': 'value',
+ 'secret': '********************',
+ 'something': [{'foo': 'value'}, {'secret': 'value'}, {'token': 'value'}],
+ 'token': '********************'}
+On Django 3.1 and up:
+>>> from django.views.debug import SafeExceptionReporterFilter
+>>> import pprint
+>>> pprint.pprint(SafeExceptionReporterFilter().get_safe_settings()["MY_SETTING"])
+{'else': [[{'foo': 'value'}, {'secret': 'value'}, {'token': 'value'}],
+		 [{'foo': 'value'}, {'secret': 'value'}, {'token': 'value'}]],
+ 'foo': 'value',
+ 'secret': '********************',
+ 'something': [{'foo': 'value'}, {'secret': 'value'}, {'token': 'value'}],
+ 'token': '********************'}
+
+</issue>
+
+Constraints:
+- Provide a minimal, correct unified diff that will pass tests.
+- Do NOT modify tests unless strictly required.
+- Ensure file paths in the diff match the repository layout.
+
+Return the diff wrapped in <patch>...</patch>.
+
+
+RAW_RESPONSE:
+I'll create a patch to fix the issue where settings are not properly cleansed when they contain nested iterables.
+
+<patch>
+diff --git a/django/views/debug.py b/django/views/debug.py
+index 9c9c9c9c9..1a1a1a1a1 100644
+--- a/django/views/debug.py
++++ b/django/views/debug.py
+@@ -84,6 +84,18 @@ def cleanse_setting(key, value):
+     """
+     if key.startswith(('SECRET', 'PASSWORD', 'API', 'TOKEN',)):
+         return CLEANSED_SUBSTITUTE
++    # If the value is a list or tuple, recursively cleanse the items
++    if isinstance(value, (list, tuple)):
++        clean_value = []
++        for item in value:
++            clean_value.append(cleanse_setting('', item))
++        if isinstance(value, tuple):
++            return tuple(clean_value)
++        return clean_value
++    # If the value is a dict, recursively cleanse the items
+     if isinstance(value, dict):
+         clean_value = {}
+         for subkey, subvalue in value.items():
+@@ -91,6 +103,7 @@ def cleanse_setting(key, value):
+             if subkey.startswith(('SECRET', 'PASSWORD', 'API', 'TOKEN',)):
+                 clean_value[subkey] = CLEANSED_SUBSTITUTE
+             else:
++                # Recursively cleanse the subvalue
+                 clean_value[subkey] = cleanse_setting(subkey, subvalue)
+         return clean_value
+     return value
+</patch>

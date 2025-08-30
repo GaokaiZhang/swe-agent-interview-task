@@ -1,0 +1,157 @@
+PROMPT:
+Instance ID: django__django-13212
+Repository:  django/django
+
+<issue>
+Make validators include the provided value in ValidationError
+Description
+	
+It is sometimes desirable to include the provide value in a custom error message. For example:
+“blah” is not a valid email.
+By making built-in validators provide value to ValidationError, one can override an error message and use a %(value)s placeholder.
+This placeholder value matches an example already in the docs:
+​https://docs.djangoproject.com/en/3.0/ref/validators/#writing-validators
+
+</issue>
+
+Constraints:
+- Provide a minimal, correct unified diff that will pass tests.
+- Do NOT modify tests unless strictly required.
+- Ensure file paths in the diff match the repository layout.
+
+Return the diff wrapped in <patch>...</patch>.
+
+
+RAW_RESPONSE:
+<patch>
+diff --git a/django/core/validators.py b/django/core/validators.py
+index 9c1c9c9c9a..a9c9c9c9a9 100644
+--- a/django/core/validators.py
++++ b/django/core/validators.py
+@@ -47,7 +47,7 @@ class RegexValidator:
+         if not self.regex.search(value):
+             raise ValidationError(
+                 self.message,
+-                code=self.code,
++                code=self.code, params={'value': value},
+             )
+ 
+ 
+@@ -77,7 +77,7 @@ class EmailValidator:
+         if not value or '@' not in value:
+             raise ValidationError(self.message, code=self.code)
+         user_part, domain_part = value.rsplit('@', 1)
+-
++        
+         if not self.user_regex.match(user_part):
+             raise ValidationError(self.message, code=self.code)
+ 
+@@ -87,7 +87,7 @@ class EmailValidator:
+             # Try for possible IDN domain-part
+             try:
+                 domain_part = punycode(domain_part)
+-            except UnicodeError:
++            except UnicodeError:  
+                 pass
+             else:
+                 if self.domain_regex.match(domain_part):
+@@ -95,7 +95,7 @@ class EmailValidator:
+         raise ValidationError(
+             self.message,
+             code=self.code,
+-        )
++            params={'value': value})
+ 
+ 
+ validate_email = EmailValidator()
+@@ -107,7 +107,7 @@ class URLValidator(RegexValidator):
+     def __call__(self, value):
+         # Check if the scheme is valid.
+         scheme = value.split(':', 1)[0].lower()
+-        if scheme not in self.schemes:
++        if scheme not in self.schemes:  
+             raise ValidationError(self.message, code=self.code)
+ 
+         # Then check full URL
+@@ -115,7 +115,7 @@ class URLValidator(RegexValidator):
+             super().__call__(value)
+         except ValidationError as e:
+             # Trivial case failed. Try for possible IDN domain
+-            if value:
++            if value:  
+                 try:
+                     scheme, rest = value.split(':', 1)
+                 except ValueError:
+@@ -130,7 +130,7 @@ class URLValidator(RegexValidator):
+                     super().__call__('%s:%s' % (scheme, rest))
+                 except ValidationError:
+                     raise ValidationError(
+-                        self.message,
++                        self.message, params={'value': value},
+                         code=self.code,
+                     )
+                 else:
+@@ -147,7 +147,7 @@ class BaseValidator:
+         if cleaned is None:
+             cleaned = self.clean(value)
+         if self.compare(cleaned, self.limit_value):
+-            raise ValidationError(self.message, code=self.code)
++            raise ValidationError(self.message, code=self.code, params={'value': value})
+ 
+     def __eq__(self, other):
+         return (
+@@ -193,7 +193,7 @@ class DecimalValidator:
+         if not self.decimal_places_re.match(digits):
+             raise ValidationError(
+                 self.messages['decimal_places'],
+-                code='decimal_places',
++                code='decimal_places', params={'value': value},
+                 params={'decimal_places': self.decimal_places},
+             )
+         if not self.max_digits_re.match(digits):
+@@ -201,7 +201,7 @@ class DecimalValidator:
+                 self.messages['max_digits'],
+                 code='max_digits',
+                 params={'max_digits': self.max_digits},
+-            )
++                )
+ 
+     def __eq__(self, other):
+         return (
+@@ -219,7 +219,7 @@ class FileExtensionValidator:
+         ext = os.path.splitext(value.name)[1][1:].lower()
+         if self.allowed_extensions and ext not in self.allowed_extensions:
+             raise ValidationError(
+-                self.message,
++                self.message, params={'value': value.name},
+                 code=self.code,
+                 params={'extension': ext, 'allowed_extensions': ', '.join(self.allowed_extensions)}
+             )
+@@ -235,7 +235,7 @@ class ProhibitNullCharactersValidator:
+     def __call__(self, value):
+         if '\x00' in str(value):
+             raise ValidationError(
+-                self.message,
++                self.message, params={'value': value},
+                 code=self.code,
+             )
+ 
+@@ -252,7 +252,7 @@ class StepValueValidator:
+         if not isinstance(value, (int, float, Decimal)):
+             raise ValidationError(
+                 self.message,
+-                code=self.code,
++                code=self.code, params={'value': value},
+                 params={'step_value': self.step_value},
+             )
+         mod = Decimal(str(value)) % Decimal(str(self.step_value))
+@@ -260,7 +260,7 @@ class StepValueValidator:
+         if mod != 0 and abs(mod - self.step_value) > self.precision:
+             raise ValidationError(
+                 self.message,
+-                code=self.code,
++                code=self.code, params={'value': value},
+                 params={'step_value': self.step_value},
+             )
+ 
+</patch>

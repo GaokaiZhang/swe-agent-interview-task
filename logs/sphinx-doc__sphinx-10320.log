@@ -1,0 +1,94 @@
+PROMPT:
+Instance ID: sphinx-doc__sphinx-10320
+Repository:  sphinx-doc/sphinx
+
+<issue>
+Overridden, overloaded class docstring return type rendered as None
+### Describe the bug
+
+Some overloaded class definitions show ``None`` as a return type, when there shouldn't be any return type.
+
+This seems to happen when the overloaded functions are overridden in the final docstring.
+
+A class without this problem is also provided for comparison.
+
+### How to Reproduce
+
+Exactly the same as https://github.com/sphinx-doc/sphinx/issues/10278
+
+### Expected behavior
+
+![image](https://user-images.githubusercontent.com/12326241/159285983-75d83f0b-4824-47ba-a511-2a28d54396c8.png)
+
+
+### Your project
+
+https://github.com/pybricks/sphinx-issues-minimal
+
+### Screenshots
+
+![image](https://user-images.githubusercontent.com/12326241/159285933-1385e59f-1d7c-47be-8a85-69bc980db8be.png)
+
+
+### OS
+
+Ubuntu
+
+### Python version
+
+3.8.3
+
+### Sphinx version
+
+4.4.0
+
+### Sphinx extensions
+
+'sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx_rtd_theme'
+
+### Extra tools
+
+_No response_
+
+### Additional context
+
+Related Sphinx issue: https://github.com/sphinx-doc/sphinx/issues/10281
+
+This was originally reported in https://github.com/pybricks/pybricks-api/issues/87
+
+</issue>
+
+Constraints:
+- Provide a minimal, correct unified diff that will pass tests.
+- Do NOT modify tests unless strictly required.
+- Ensure file paths in the diff match the repository layout.
+
+Return the diff wrapped in <patch>...</patch>.
+
+
+RAW_RESPONSE:
+Looking at the issue, it appears that when a class method is overloaded and its docstring is overridden, Sphinx incorrectly renders "None" as a return type when there shouldn't be any return type shown. Let me create a patch to fix this issue.
+
+<patch>
+diff --git a/sphinx/ext/autodoc/typehints.py b/sphinx/ext/autodoc/typehints.py
+index 9c9c9c9a5..c9c9c9c9c 100644
+--- a/sphinx/ext/autodoc/typehints.py
++++ b/sphinx/ext/autodoc/typehints.py
+@@ -246,7 +246,7 @@ def record_typehints(app: Sphinx, objtype: str, name: str,
+                 if sig and sig.return_annotation is not Parameter.empty:
+                     returns = stringify_annotation(sig.return_annotation, mode)
+                     if returns:
+-                        typehints['returns'] = returns
++                        typehints['returns'] = None if returns == 'None' and not sig.return_annotation else returns
+ 
+             if 'overloads' in attrs and attrs['overloads']:
+                 # handle overloaded functions
+@@ -257,7 +257,7 @@ def record_typehints(app: Sphinx, objtype: str, name: str,
+                     if sig and sig.return_annotation is not Parameter.empty:
+                         returns = stringify_annotation(sig.return_annotation, mode)
+                         if returns:
+-                            typehints.setdefault('returns', returns)
++                            typehints.setdefault('returns', None if returns == 'None' and not sig.return_annotation else returns)
+ 
+     return typehints
+ </patch>

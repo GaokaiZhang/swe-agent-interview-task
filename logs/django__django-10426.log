@@ -1,0 +1,52 @@
+PROMPT:
+Instance ID: django__django-10426
+Repository:  django/django
+
+<issue>
+Add app_label validation to showmigrations
+Description
+	
+#29469
+#29518
+#29506
+The app label validation was added to some commands as above tickets.
+But showmigrations command doesn't contain it.
+So I think the validation should be added to showmigrations command.
+
+</issue>
+
+Constraints:
+- Provide a minimal, correct unified diff that will pass tests.
+- Do NOT modify tests unless strictly required.
+- Ensure file paths in the diff match the repository layout.
+
+Return the diff wrapped in <patch>...</patch>.
+
+
+RAW_RESPONSE:
+<patch>
+diff --git a/django/core/management/commands/showmigrations.py b/django/core/management/commands/showmigrations.py
+index 9c9c9c9c9c..1111111111 100644
+--- a/django/core/management/commands/showmigrations.py
++++ b/django/core/management/commands/showmigrations.py
+@@ -1,5 +1,6 @@
+ from django.apps import apps
+ from django.core.management.base import BaseCommand, CommandError
++from django.db.migrations.loader import MigrationLoader
+ 
+ 
+ class Command(BaseCommand):
+@@ -42,6 +43,10 @@ class Command(BaseCommand):
+         # Load migrations
+         connection = connections[options['database']]
+         loader = MigrationLoader(connection, ignore_no_migrations=True)
++        
++        # Check for nonexistent app_labels
++        app_labels = set(app_labels or [])
++        invalid_apps = app_labels - set(loader.migrated_apps)
++        if invalid_apps:
++            raise CommandError("App '%s' does not have migrations." % list(invalid_apps)[0])
+ 
+         # If no app_labels are specified, show all
+         if not app_labels:
+</patch>

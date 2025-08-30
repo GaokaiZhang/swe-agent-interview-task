@@ -1,0 +1,32 @@
+{
+  "django__django-13413": {
+    "instance_id": "django__django-13413",
+    "model_name_or_path": "claude-3-5-sonnet-20240620",
+    "model_patch": "--- a/django/contrib/admin/filters.py\n+++ b/django/contrib/admin/filters.py\n@@ -292,8 +292,12 @@ class BooleanFieldListFilter(FieldListFilter):\n         return {\n             1: _('Yes'),\n             0: _('No'),\n-            None: _('Unknown'),\n         }\n+        \n+    def choices(self, changelist):\n+        for lookup, title in self.lookup_choices:\n+            yield {\n+                'selected': self.lookup_val == lookup,\n+                'query_string': changelist.get_query_string({self.lookup_kwarg: lookup}),\n+                'display': self.field.choices[lookup] if self.field.choices else title,\n+            }\n \n \n class ChoicesFieldListFilter(FieldListFilter):"
+  },
+  "django__django-10426": {
+    "instance_id": "django__django-10426",
+    "model_name_or_path": "claude-3-5-sonnet-20240620",
+    "model_patch": ""
+  },
+  "matplotlib__matplotlib-26472": {
+    "instance_id": "matplotlib__matplotlib-26472",
+    "model_name_or_path": "claude-3-5-sonnet-20240620",
+    "model_patch": "--- a/lib/matplotlib/__init__.py\n+++ b/lib/matplotlib/__init__.py\n@@ -1273,6 +1273,7 @@ def get_backend():\n     matplotlib.use\n     \"\"\"\n     return rcParams['backend']\n+    \n \n def interactive(b):\n     \"\"\"\n@@ -1292,6 +1293,7 @@ def is_interactive():\n         use `.pyplot.isinteractive` instead.\n     \"\"\"\n     return rcParams['interactive']\n+    \n \n def _val_or_rc(val, rc_name):\n     \"\"\"\n@@ -1299,6 +1301,21 @@ def _val_or_rc(val, rc_name):\n     \"\"\"\n     return val if val is not None else rcParams[rc_name]\n \n+\n+@contextlib.contextmanager\n+def _switch_backend(backend):\n+    \"\"\"\n+    Context manager to temporarily switch the backend.\n+    \"\"\"\n+    old_backend = rcParams['backend']\n+    try:\n+        use(backend, force=False)\n+        yield\n+    finally:\n+        if old_backend != rcParams['backend']:\n+            use(old_backend, force=False)\n+\n+\n def _init_tests():\n     # The version of FreeType to install locally for running the\n     # tests.  This must match the value in `setupext.py`"
+  },
+  "matplotlib__matplotlib-23049": {
+    "instance_id": "matplotlib__matplotlib-23049",
+    "model_name_or_path": "claude-3-5-sonnet-20240620",
+    "model_patch": ""
+  },
+  "django__django-16902": {
+    "instance_id": "django__django-16902",
+    "model_name_or_path": "claude-3-5-sonnet-20240620",
+    "model_patch": ""
+  },
+  "django__django-14238": {
+    "instance_id": "django__django-14238",
+    "model_name_or_path": "claude-3-5-sonnet-20240620",
+    "model_patch": "--- a/django/db/models/fields/__init__.py\n+++ b/django/db/models/fields/__init__.py\n@@ -1608,7 +1608,7 @@ class AutoFieldMixin:\n     def _check_primary_key(self):\n         if self._get_pk_val(self.model._meta.pk) is None:\n             return [\n-                checks.Error(\n+                checks.Warning(\n                     'Primary key fields cannot be AutoFields.',\n                     obj=self,\n                     id='fields.E100',\n@@ -1619,7 +1619,7 @@ class AutoFieldMixin:\n     @classmethod\n     def __subclasscheck__(cls, subclass):\n         return (\n-            issubclass(subclass, AutoField) or\n+            issubclass(subclass, (AutoField, BigAutoField, SmallAutoField)) or\n             super().__subclasscheck__(subclass)\n         )"
+  }
+}
