@@ -1,0 +1,28 @@
+diff --git a/django/views/debug.py b/django/views/debug.py
+index 9c9c9c9c9..1a1a1a1a1 100644
+--- a/django/views/debug.py
++++ b/django/views/debug.py
+@@ -84,6 +84,18 @@ def cleanse_setting(key, value):
+     """
+     if key.startswith(('SECRET', 'PASSWORD', 'API', 'TOKEN',)):
+         return CLEANSED_SUBSTITUTE
++    # If the value is a list or tuple, recursively cleanse the items
++    if isinstance(value, (list, tuple)):
++        clean_value = []
++        for item in value:
++            clean_value.append(cleanse_setting('', item))
++        if isinstance(value, tuple):
++            return tuple(clean_value)
++        return clean_value
++    # If the value is a dict, recursively cleanse the items
+     if isinstance(value, dict):
+         clean_value = {}
+         for subkey, subvalue in value.items():
+@@ -91,6 +103,7 @@ def cleanse_setting(key, value):
+             if subkey.startswith(('SECRET', 'PASSWORD', 'API', 'TOKEN',)):
+                 clean_value[subkey] = CLEANSED_SUBSTITUTE
+             else:
++                # Recursively cleanse the subvalue
+                 clean_value[subkey] = cleanse_setting(subkey, subvalue)
+         return clean_value
+     return value

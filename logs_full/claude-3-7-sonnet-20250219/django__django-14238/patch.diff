@@ -1,0 +1,10 @@
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -1022,7 +1022,7 @@ class AutoFieldMeta(type):
+     """Metaclass to maintain backward inheritance compatibility."""
+ 
+     def __new__(cls, name, bases, namespace, **kwargs):
+-        if name != "AutoField" and bases[0].__name__ != "AutoField":
++        if name not in {"AutoField", "BigAutoField", "SmallAutoField"} and not any(base.__name__ in {"AutoField", "BigAutoField", "SmallAutoField"} for base in bases):
+             namespace["_subclasses"] = {}
+         return super().__new__(cls, name, bases, namespace, **kwargs)

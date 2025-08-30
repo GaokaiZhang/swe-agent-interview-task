@@ -1,0 +1,13 @@
+diff --git a/lib/matplotlib/pyplot.py b/lib/matplotlib/pyplot.py
+index 9c9c9c9c5..c9c9c9c9c 100644
+--- a/lib/matplotlib/pyplot.py
++++ b/lib/matplotlib/pyplot.py
+@@ -265,7 +265,8 @@ def switch_backend(newbackend):
+     # Close all open figures if switching away from a backend that has a
+     # main loop, to avoid these figures being inadvertently re-drawn.
+     if (not newbackend_mod.mainloop
+-            and is_interactive()
++            and is_interactive() 
++            and not newbackend.lower() in ["inline", "ipympl", "notebook"]
+             and cbook._get_running_interactive_framework()):
+         close("all")

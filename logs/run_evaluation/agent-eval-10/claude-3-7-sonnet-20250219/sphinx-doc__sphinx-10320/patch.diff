@@ -1,0 +1,21 @@
+diff --git a/sphinx/ext/autodoc/typehints.py b/sphinx/ext/autodoc/typehints.py
+index 9c9c9c9a5..c9c9c9c9c 100644
+--- a/sphinx/ext/autodoc/typehints.py
++++ b/sphinx/ext/autodoc/typehints.py
+@@ -246,7 +246,7 @@ def record_typehints(app: Sphinx, objtype: str, name: str,
+                 if sig and sig.return_annotation is not Parameter.empty:
+                     returns = stringify_annotation(sig.return_annotation, mode)
+                     if returns:
+-                        typehints['returns'] = returns
++                        typehints['returns'] = None if returns == 'None' and not sig.return_annotation else returns
+ 
+             if 'overloads' in attrs and attrs['overloads']:
+                 # handle overloaded functions
+@@ -257,7 +257,7 @@ def record_typehints(app: Sphinx, objtype: str, name: str,
+                     if sig and sig.return_annotation is not Parameter.empty:
+                         returns = stringify_annotation(sig.return_annotation, mode)
+                         if returns:
+-                            typehints.setdefault('returns', returns)
++                            typehints.setdefault('returns', None if returns == 'None' and not sig.return_annotation else returns)
+ 
+     return typehints

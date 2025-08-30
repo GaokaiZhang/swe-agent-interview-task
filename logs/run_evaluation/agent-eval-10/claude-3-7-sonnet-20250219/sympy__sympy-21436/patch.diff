@@ -1,0 +1,55 @@
+--- a/sympy/physics/vector/frame.py
++++ b/sympy/physics/vector/frame.py
+@@ -1,5 +1,6 @@
+ from sympy import (Matrix, eye, sin, cos, trigsimp, zeros, ImmutableMatrix,
+-                   sympify, diff, Symbol, simplify, solve, symbols)
++                   sympify, diff, Symbol, simplify, solve, symbols,
++                   SympifyError)
+ from sympy.core.compatibility import string_types, range
+ from sympy.utilities.misc import filldedent
+ 
+@@ -1000,7 +1001,6 @@ class ReferenceFrame(object):
+         """
+ 
+         _check_frame(frame)
+-        self._dcm_dict = {}
+         self._dcm_dict.update({frame: dcm})
+         frame._dcm_dict.update({self: dcm.T})
+         self._dlist = []
+@@ -1008,6 +1008,7 @@ class ReferenceFrame(object):
+         # Check if the dcm's are orthogonal
+         if not Matrix([dcm.T * dcm - eye(3), dcm * dcm.T - eye(3)]).simplify().is_zero:
+             raise ValueError("The dcm provided is not orthogonal.")
++        self._check_frame_recursively(self, set())
+ 
+     def _orient(self, frame, rot_type, amounts, rot_order):
+         """Orienting reference frame.
+@@ -1033,6 +1034,26 @@ class ReferenceFrame(object):
+         self._dcm(frame, dcm)
+         self._rot_type = rot_type
+ 
++    def _check_frame_recursively(self, frame, visited):
++        """Check for loops in the frame graph.
++
++        Parameters
++        ==========
++
++        frame : ReferenceFrame
++            The frame to check.
++        visited : set
++            Set of frames already visited.
++
++        Raises
++        ======
++
++        ValueError
++            When a loop is detected in the frame graph.
++        """
++        if frame in visited:
++            raise ValueError("Loops in frame graph are not allowed")
++        visited.add(frame)
++        for other_frame in frame._dcm_dict:
++            frame._check_frame_recursively(other_frame, visited.copy())
++
+     def orient(self, frame, rot_type, amounts, rot_order=''):
+         """Orient the reference frame.

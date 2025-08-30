@@ -1,0 +1,39 @@
+{
+    "total_instances": 10,
+    "submitted_instances": 10,
+    "completed_instances": 0,
+    "resolved_instances": 0,
+    "unresolved_instances": 0,
+    "empty_patch_instances": 0,
+    "error_instances": 10,
+    "completed_ids": [],
+    "incomplete_ids": [],
+    "empty_patch_ids": [],
+    "submitted_ids": [
+        "django__django-10426",
+        "django__django-12700",
+        "django__django-13212",
+        "django__django-13413",
+        "django__django-14238",
+        "django__django-16902",
+        "matplotlib__matplotlib-23049",
+        "matplotlib__matplotlib-26472",
+        "sphinx-doc__sphinx-10320",
+        "sympy__sympy-21436"
+    ],
+    "resolved_ids": [],
+    "unresolved_ids": [],
+    "error_ids": [
+        "django__django-10426",
+        "django__django-12700",
+        "django__django-13212",
+        "django__django-13413",
+        "django__django-14238",
+        "django__django-16902",
+        "matplotlib__matplotlib-23049",
+        "matplotlib__matplotlib-26472",
+        "sphinx-doc__sphinx-10320",
+        "sympy__sympy-21436"
+    ],
+    "schema_version": 2
+}

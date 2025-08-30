@@ -1,0 +1,38 @@
+diff --git a/django/contrib/admin/filters.py b/django/contrib/admin/filters.py
+index 9c9c9c9c9c..1c1c1c1c1c 100644
+--- a/django/contrib/admin/filters.py
++++ b/django/contrib/admin/filters.py
+@@ -177,6 +177,14 @@ class BooleanFieldListFilter(FieldListFilter):
+         self.lookup_kwarg_isnull = '%s__isnull' % field.name
+         self.lookup_val = params.get(self.lookup_kwarg)
+         self.lookup_val_isnull = params.get(self.lookup_kwarg_isnull)
++        self.lookup_choices = field.get_choices(include_blank=False)
++        self.true_val = _('Yes')
++        self.false_val = _('No')
++        
++        # If field has choices, use the display value for True and False
++        if self.lookup_choices:
++            for value, display in self.lookup_choices:
++                if value is True or value is False:
++                    setattr(self, '%s_val' % str(value).lower(), display)
+ 
+     def expected_parameters(self):
+         return [self.lookup_kwarg, self.lookup_kwarg_isnull]
+@@ -193,7 +201,7 @@ class BooleanFieldListFilter(FieldListFilter):
+             yield {
+                 'selected': self.lookup_val == '1',
+                 'query_string': cl.get_query_string({self.lookup_kwarg: '1'}, [self.lookup_kwarg_isnull]),
+-                'display': _('Yes'),
++                'display': self.true_val,
+             }
+         if self.lookup_val_isnull != 'True':
+             yield {
+@@ -205,7 +213,7 @@ class BooleanFieldListFilter(FieldListFilter):
+             yield {
+                 'selected': self.lookup_val == '0',
+                 'query_string': cl.get_query_string({self.lookup_kwarg: '0'}, [self.lookup_kwarg_isnull]),
+-                'display': _('No'),
++                'display': self.false_val,
+             }
+ 
+ FieldListFilter.register(lambda f: isinstance(f, models.BooleanField), BooleanFieldListFilter)

@@ -1,0 +1,89 @@
+diff --git a/lib/matplotlib/pyplot.py b/lib/matplotlib/pyplot.py
+index 3c3c4c0a5..a0b6c9e6c 100644
+--- a/lib/matplotlib/pyplot.py
++++ b/lib/matplotlib/pyplot.py
+@@ -2214,7 +2214,7 @@ def xticks(ticks=None, labels=None, **kwargs):
+     return gca().set_xticks(ticks, labels, **kwargs)
+ 
+ 
+-def yticks(ticks=None, labels=None, **kwargs):
++def yticks(ticks=None, labels=None, *, minor=False, **kwargs):
+     """
+     Get or set the current tick locations and labels of the y-axis.
+ 
+@@ -2226,6 +2226,8 @@ def yticks(ticks=None, labels=None, **kwargs):
+         List of label text. Defaults to list of the form ``['$0$', '$1$', ...]``
+         or ``['$0$', '$2$', ...]`` if the number of ticks exceeds 10.
+         Labels are currently rotation-invariant.
++    minor : bool, default: False
++        If True, set minor ticks instead of major ticks.
+     **kwargs
+         `.Text` properties for the labels.
+ 
+@@ -2240,7 +2242,7 @@ def yticks(ticks=None, labels=None, **kwargs):
+     >>> locs, labels = plt.yticks()  # Get the current locations and labels
+     >>> plt.yticks(np.arange(0, 1, step=0.2))  # Set label locations
+     >>> plt.yticks(np.arange(3), ['Tom', 'Dick', 'Sue'])  # Set text labels
+-    >>> plt.yticks([0, 1, 2], ['January', 'February', 'March'],
++    >>> plt.yticks([0, 1, 2], ['January', 'February', 'March'], minor=False,
+     ...            rotation=45)  # Set text labels and properties
+     >>> plt.yticks([])  # Disable yticks
+     """
+@@ -2248,7 +2250,7 @@ def yticks(ticks=None, labels=None, **kwargs):
+     ax = gca()
+     if ticks is None and labels is None:
+         locs = ax.get_yticks()
+-        labels = ax.get_yticklabels()
++        labels = ax.get_yticklabels(minor=minor)
+         return locs, labels
+     return ax.set_yticks(ticks, labels, **kwargs)
+ 
+diff --git a/lib/matplotlib/pyplot.py b/lib/matplotlib/pyplot.py
+index a0b6c9e6c..c9b1e1c9c 100644
+--- a/lib/matplotlib/pyplot.py
++++ b/lib/matplotlib/pyplot.py
+@@ -2196,7 +2196,7 @@ def xscale(value, **kwargs):
+     return gca().set_xscale(value, **kwargs)
+ 
+ 
+-def xticks(ticks=None, labels=None, **kwargs):
++def xticks(ticks=None, labels=None, *, minor=False, **kwargs):
+     """
+     Get or set the current tick locations and labels of the x-axis.
+ 
+@@ -2208,6 +2208,8 @@ def xticks(ticks=None, labels=None, **kwargs):
+         List of label text. Defaults to list of the form ``['$0$', '$1$', ...]``
+         or ``['$0$', '$2$', ...]`` if the number of ticks exceeds 10.
+         Labels are currently rotation-invariant.
++    minor : bool, default: False
++        If True, set minor ticks instead of major ticks.
+     **kwargs
+         `.Text` properties for the labels.
+ 
+@@ -2222,7 +2224,7 @@ def xticks(ticks=None, labels=None, **kwargs):
+     >>> locs, labels = plt.xticks()  # Get the current locations and labels
+     >>> plt.xticks(np.arange(0, 1, step=0.2))  # Set label locations
+     >>> plt.xticks(np.arange(3), ['Tom', 'Dick', 'Sue'])  # Set text labels
+-    >>> plt.xticks([0, 1, 2], ['January', 'February', 'March'],
++    >>> plt.xticks([0, 1, 2], ['January', 'February', 'March'], minor=False,
+     ...            rotation=45)  # Set text labels and properties
+     >>> plt.xticks([])  # Disable xticks
+     """
+@@ -2230,9 +2232,9 @@ def xticks(ticks=None, labels=None, **kwargs):
+     ax = gca()
+     if ticks is None and labels is None:
+         locs = ax.get_xticks()
+-        labels = ax.get_xticklabels()
++        labels = ax.get_xticklabels(minor=minor)
+         return locs, labels
+-    return gca().set_xticks(ticks, labels, **kwargs)
++    return gca().set_xticks(ticks, labels, minor=minor, **kwargs)
+ 
+ 
+ def yticks(ticks=None, labels=None, *, minor=False, **kwargs):
+@@ -2252,5 +2254,5 @@ def yticks(ticks=None, labels=None, *, minor=False, **kwargs):
+         locs = ax.get_yticks()
+         labels = ax.get_yticklabels(minor=minor)
+         return locs, labels
+-    return ax.set_yticks(ticks, labels, **kwargs)
++    return ax.set_yticks(ticks, labels, minor=minor, **kwargs)

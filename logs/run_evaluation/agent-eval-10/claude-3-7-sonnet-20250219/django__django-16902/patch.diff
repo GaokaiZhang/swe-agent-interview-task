@@ -1,0 +1,56 @@
+diff --git a/django/db/backends/oracle/functions.py b/django/db/backends/oracle/functions.py
+index 9c9c9c9c9c..9c9c9c9c9c 100644
+--- a/django/db/backends/oracle/functions.py
++++ b/django/db/backends/oracle/functions.py
+@@ -1,5 +1,5 @@
+ from django.db.models.functions import (
+-    Chr, ConcatPair, Greatest, Least, Length, LPad, Repeat, RPad, Substr,
++    Chr, Coalesce, ConcatPair, Greatest, Least, Length, LPad, Repeat, RPad, Substr,
+ )
+ 
+ 
+@@ -33,7 +33,7 @@ class OracleSubstr(Substr):
+ 
+ 
+ def Right(self, compiler, connection, **extra_context):
+-    return self.as_sql(
++    sql, params = self.as_sql(
+         compiler, connection,
+         function='SUBSTR',
+         template="%(function)s(%(expressions)s, -%(length)s, %(length)s)",
+@@ -41,6 +41,7 @@ def Right(self, compiler, connection, **extra_context):
+             'length': self.get_source_expressions()[1],
+         },
+     )
++    return "CASE WHEN %(length)s = 0 THEN '' ELSE %(sql)s END" % {'length': params[1], 'sql': sql}, params
+ 
+ 
+ def StrIndex(self, compiler, connection, **extra_context):
+diff --git a/django/db/backends/sqlite3/functions.py b/django/db/backends/sqlite3/functions.py
+index 9c9c9c9c9c..9c9c9c9c9c 100644
+--- a/django/db/backends/sqlite3/functions.py
++++ b/django/db/backends/sqlite3/functions.py
+@@ -1,5 +1,5 @@
+ from django.db.models.functions import (
+-    Extract, Greatest, Least, Length, LPad, RPad, Substr,
++    Coalesce, Extract, Greatest, Least, Length, LPad, RPad, Substr,
+ )
+ 
+ 
+@@ -33,7 +33,7 @@ def RPad(self, compiler, connection, **extra_context):
+ 
+ 
+ def Right(self, compiler, connection, **extra_context):
+-    return self.as_sql(
++    sql, params = self.as_sql(
+         compiler, connection,
+         function='SUBSTR',
+         template="%(function)s(%(expressions)s, -%(length)s, %(length)s)",
+@@ -41,6 +41,7 @@ def Right(self, compiler, connection, **extra_context):
+             'length': self.get_source_expressions()[1],
+         },
+     )
++    return "CASE WHEN %(length)s = 0 THEN '' ELSE %(sql)s END" % {'length': params[1], 'sql': sql}, params
+ 
+ 
+ def Substr(self, compiler, connection, **extra_context):
